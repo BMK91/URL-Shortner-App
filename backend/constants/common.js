@@ -1,0 +1,5 @@
+const API_STATUS = {
+  SUCCESS: "SUCCESS",
+  ERROR: "ERROR",
+  EMPTY: "EMPTY",
+};
