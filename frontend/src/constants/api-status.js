@@ -1,5 +1,7 @@
 const API_STATUS = {
   SUCCESS: "SUCCESS",
-  ERROR: "ERROR",
+  FAILED: "FAILED",
   EMPTY: "EMPTY",
 };
+
+export { API_STATUS };

@@ -14,10 +14,14 @@ import {
 } from "@mui/material";
 
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import PublicIcon from "@mui/icons-material/Public";
 
+import ConfirmDeletePopup from "@components/ConfirmDeletePopup";
 import { useSnackbar } from "@components/SnackbarProvider";
+import { useHandleMessage } from "@hooks/handleMessage";
 import {
+  deleteUrlHistoryService,
   getOriginalUrlService,
   getUrlHistoryService,
 } from "../DashboardService";
@@ -26,16 +30,18 @@ const COPY_TOOLTIP_TITLE = "Copy original URL";
 
 const UrlHistory = forwardRef((props, ref) => {
   const { showSnackbar } = useSnackbar();
+  const handleMessage = useHandleMessage();
 
   const [histories, setHistories] = useState([]);
   const [copiedUrl, setCopiedUrl] = useState({});
+  const [openDeletePopup, setOpenDeletePopup] = useState(false);
+  const [deletedIds, setDeletedIds] = useState(null);
 
   useImperativeHandle(ref, () => ({
     initHistoryFn,
   }));
 
   useEffect(() => {
-    console.log("called ");
     initHistoryFn();
   }, []);
 
@@ -48,11 +54,7 @@ const UrlHistory = forwardRef((props, ref) => {
         setHistories(response.data.data);
       }
     } catch (error) {
-      const message =
-        error.response?.data?.message ||
-        error.message ||
-        "Something went wrong";
-      showSnackbar(message, "error");
+      handleMessage(error);
     }
   }
 
@@ -81,11 +83,7 @@ const UrlHistory = forwardRef((props, ref) => {
 
       showSnackbar("Copy failed!", "error");
     } catch (error) {
-      const message =
-        error.response?.data?.message ||
-        error.message ||
-        "Something went wrong";
-      showSnackbar(message, "error");
+      handleMessage(error);
     }
   };
 
@@ -103,12 +101,34 @@ const UrlHistory = forwardRef((props, ref) => {
           "noopener,noreferrer"
         );
       }
+
+      showSnackbar("Something went wrong!", "error");
     } catch (error) {
-      const message =
-        error.response?.data?.message ||
-        error.message ||
-        "Something went wrong";
-      showSnackbar(message, "error");
+      handleMessage(error);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    setDeletedIds(id || null);
+    setOpenDeletePopup(!!id);
+  };
+
+  const deleteRecord = async () => {
+    try {
+      const response = await deleteUrlHistoryService(deletedIds);
+
+      if (response.data?.status === "SUCCESS") {
+        handleMessage(response);
+        initHistoryFn();
+        return;
+      }
+
+      showSnackbar("Something went wrong!", "error");
+    } catch (error) {
+      handleMessage(error);
+    } finally {
+      setOpenDeletePopup(false);
+      setDeletedIds(null);
     }
   };
 
@@ -118,15 +138,31 @@ const UrlHistory = forwardRef((props, ref) => {
         <Table size="small">
           <TableHead>
             <TableRow>
+              <TableCell></TableCell>
               <TableCell>URL Name</TableCell>
               <TableCell>Shortened URL</TableCell>
+              <TableCell>Created At</TableCell>
             </TableRow>
           </TableHead>
 
           <TableBody>
             {histories.map((history) => (
               <TableRow key={history._id}>
+                <TableCell sx={{ width: 10 }}>
+                  <Tooltip title="Delete">
+                    <IconButton
+                      size="small"
+                      component="button"
+                      color="error"
+                      onClick={() => handleDelete(history._id)}
+                    >
+                      <DeleteOutlineIcon />
+                    </IconButton>
+                  </Tooltip>
+                </TableCell>
+
                 <TableCell>{history.urlName}</TableCell>
+
                 <TableCell>
                   <Box
                     display="flex"
@@ -160,11 +196,21 @@ const UrlHistory = forwardRef((props, ref) => {
                     <span>{history.shortenUrl}</span>
                   </Box>
                 </TableCell>
+
+                <TableCell>{history.formattedCreatedAt}</TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </TableContainer>
+
+      <ConfirmDeletePopup
+        isOpen={openDeletePopup}
+        callbackFn={{
+          confirm: deleteRecord,
+          cancel: handleDelete,
+        }}
+      />
     </>
   );
 });

@@ -1,0 +1,25 @@
+{
+  "name": "url-shortner-app",
+  "version": "1.0.0",
+  "description": "Fullstack MERN app",
+  "keywords": [
+    "MERN"
+  ],
+  "homepage": "https://github.com/BMK91/URL-Shortner-App#readme",
+  "bugs": {
+    "url": "https://github.com/BMK91/URL-Shortner-App/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BMK91/URL-Shortner-App.git"
+  },
+  "license": "ISC",
+  "author": "BHARGAV",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "start cmd /k \"npm run start --prefix backend\" & start cmd /k \"npm run dev --prefix frontend\"",
+    "start:dev": "start cmd /k \"npm run start:dev --prefix backend\" & start cmd /k \"npm run dev --prefix frontend\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}

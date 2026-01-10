@@ -7,8 +7,10 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      "@components": path.resolve(__dirname, "src/components"),
       "@api": path.resolve(__dirname, "./axiosConfig.js"),
+      "@constants": path.resolve(__dirname, "./src/constants"),
+      "@components": path.resolve(__dirname, "./src/components"),
+      "@hooks": path.resolve(__dirname, "./src/hooks"),
     },
   },
 });

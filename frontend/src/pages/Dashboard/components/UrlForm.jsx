@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Box, Button, Grid, Paper, TextField } from "@mui/material";
 import { z } from "zod";
 
-import { useSnackbar } from "@components/SnackbarProvider";
+import { useHandleMessage } from "@hooks/handleMessage";
 import { createUrlService } from "../DashboardService";
 
 const urlFormSchema = z.object({
@@ -25,39 +25,33 @@ const urlFormSchema = z.object({
 });
 
 const UrlForm = ({ historyRef }) => {
-  const { showSnackbar } = useSnackbar();
+  const handleMessage = useHandleMessage();
 
   const { control, handleSubmit, reset } = useForm({
     resolver: zodResolver(urlFormSchema),
     defaultValues: {
-      urlName: "",
-      originalUrl: "",
+      urlName: "test",
+      originalUrl: "http://test.com",
     },
-    mode: "all",
+    mode: "onBlur",
+    reValidateMode: "onChange",
   });
 
   const onSubmit = async (data) => {
     try {
       const payload = {
-        urlName: data.urlName || undefined,
+        urlName: data.urlName,
         originalUrl: data.originalUrl,
       };
 
       const response = await createUrlService(payload);
       if (response.data?.status === "SUCCESS") {
-        showSnackbar(response.data.message, "success");
         reset();
         historyRef.current?.initHistoryFn();
-        return;
       }
-
-      showSnackbar(response.data?.message, "error");
+      handleMessage(response);
     } catch (error) {
-      const message =
-        error.response?.data?.message ||
-        error.message ||
-        "Something went wrong";
-      showSnackbar(message, "error");
+      handleMessage(error);
     }
   };
 
@@ -78,7 +72,6 @@ const UrlForm = ({ historyRef }) => {
                       slotProps={{
                         htmlInput: { maxLength: 50 },
                       }}
-                      autoFocus
                       variant="outlined"
                       size="small"
                       fullWidth

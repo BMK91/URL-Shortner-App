@@ -1,15 +1,15 @@
 import { customAlphabet } from "nanoid";
 import { z } from "zod";
 
+import API_RESPONSE from "../constants/api-responses.js";
 import { UrlConfig } from "../models/Config.js";
 import { UrlRequest } from "../models/UrlRequest.js";
+import { sendError, sendSuccess } from "../utils/responseHandler.js";
 
 const urlSchemas = z.object({
-  urlName: z
-    .string()
-    .refine((val) => val === "" || val.length >= 3, {
-      message: "Must be at least 3 characters long",
-    }),
+  urlName: z.string().min(3, {
+    message: "Must be at least 3 characters long",
+  }),
   originalUrl: z.string().refine(
     (val) => {
       try {
@@ -32,7 +32,7 @@ const createUrlRequest = async (req, res) => {
     // Validate input data
     const validation = urlSchemas.safeParse({ urlName, originalUrl });
     if (!validation.success) {
-      return res.status(400).json();
+      return sendError(res, API_RESPONSE.BAD_REQUEST);
     }
 
     const config = await UrlConfig.findOne({
@@ -41,7 +41,10 @@ const createUrlRequest = async (req, res) => {
     });
 
     if (!config) {
-      return resHandler(res, 500, "", API_ERRORS.URL_ALREADY_EXISTS);
+      return sendError(res, {
+        ...API_RESPONSE.NOT_FOUND,
+        err: "Config not found!",
+      });
     }
 
     const base36Timestamp = Date.now().toString(36);
@@ -57,8 +60,9 @@ const createUrlRequest = async (req, res) => {
     });
 
     if (isExistUrlRequest) {
-      return res.status(409).json({
-        message: "Original URL | URL Code Already Exists",
+      return sendError(res, {
+        ...API_RESPONSE.CONFLICT,
+        message: "URL already exist!",
       });
     }
 
@@ -76,13 +80,11 @@ const createUrlRequest = async (req, res) => {
     await newUrlRequest.save();
     delete newUrlRequest._doc.ipAddress;
 
-    return res.status(201).json({
-      status: "SUCCESS",
-      message: "URL shortened successfully",
-      data: null,
+    return sendSuccess(res, {
+      message: "URL shortned successfully!",
     });
   } catch (error) {
-    console.log(error);
+    return sendError(res);
   }
 };
 
@@ -117,23 +119,26 @@ const getOriginalUrl = async (req, res) => {
       data: urlRequest,
     });
   } catch (error) {
-    console.log(error);
+    return sendError(res);
   }
 };
 
 const getUrlHistory = async (req, res) => {
   try {
-    const urlRequests = await UrlRequest.find(
+    const urlRequests = await UrlRequest.aggregate([
+      { $match: { isActive: true, isDeleted: false } },
+      { $sort: { createdAt: -1 } },
       {
-        isActive: true,
-        isDeleted: false,
+        $project: {
+          urlName: 1,
+          shortenUrl: 1,
+          createdAt: 1,
+          formattedCreatedAt: {
+            $dateToString: { format: "%d %b %Y, %H:%M", date: "$createdAt" },
+          },
+        },
       },
-      {
-        urlName: 1,
-        shortenUrl: 1,
-        createdAt: 1,
-      }
-    ).sort({ createdAt: -1 });
+    ]);
 
     return res.status(200).json({
       status: "SUCCESS",
@@ -141,8 +146,33 @@ const getUrlHistory = async (req, res) => {
       data: urlRequests,
     });
   } catch (error) {
-    console.log(error);
+    return sendError(res);
   }
 };
 
-export { createUrlRequest, getOriginalUrl, getUrlHistory };
+const deleteUrlHistory = async (req, res) => {
+  try {
+    const { id: _id } = req.params;
+
+    if (!_id) {
+      return sendError(res, API_RESPONSE.BAD_REQUEST);
+    }
+
+    const { deletedCount } = await UrlRequest.deleteOne({ _id });
+
+    if (deletedCount > 0) {
+      return sendSuccess(res, {
+        ...API_RESPONSE.DELETED,
+        data: {
+          deletedCount,
+        },
+      });
+    }
+
+    return sendError(res, API_RESPONSE.SOMETHING_WENT_WRONG);
+  } catch (error) {
+    return sendError(res);
+  }
+};
+
+export { createUrlRequest, deleteUrlHistory, getOriginalUrl, getUrlHistory };

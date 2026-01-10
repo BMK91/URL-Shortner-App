@@ -1,9 +1,10 @@
 import express from "express";
 
 import {
-    createUrlRequest,
-    getOriginalUrl,
-    getUrlHistory,
+  createUrlRequest,
+  deleteUrlHistory,
+  getOriginalUrl,
+  getUrlHistory,
 } from "../controller/UrlRequest.js";
 
 const router = express.Router();
@@ -11,6 +12,7 @@ const router = express.Router();
 router
   .post("/", createUrlRequest)
   .post("/get-original-url", getOriginalUrl)
-  .post("/url-history", getUrlHistory);
+  .post("/url-history", getUrlHistory)
+  .delete("/delete-history/:id", deleteUrlHistory);
 
 export default router;

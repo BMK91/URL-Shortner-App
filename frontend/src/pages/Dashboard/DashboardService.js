@@ -12,5 +12,14 @@ const getUrlHistoryService = (payload) => {
   return api.post("/url-history", payload);
 };
 
-export { createUrlService, getOriginalUrlService, getUrlHistoryService };
+const deleteUrlHistoryService = (id) => {
+  return api.delete(`/delete-history/${id}`);
+};
+
+export {
+  createUrlService,
+  deleteUrlHistoryService,
+  getOriginalUrlService,
+  getUrlHistoryService
+};
 

@@ -15,7 +15,6 @@ export const SnackbarProvider = ({ children }) => {
   });
 
   const showSnackbar = (message, severity = "info", durationTime = 3000) => {
-    console.log("Showing snackbar:", { message, severity, durationTime });
     setSnackBar({
       open: true,
       severity,
