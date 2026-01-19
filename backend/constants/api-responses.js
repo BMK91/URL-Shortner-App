@@ -3,7 +3,7 @@ import { API_STATUS_CODE } from "./api-status.js";
 const GENERIC_RESPONSE = {
   SUCCESS: {
     statusCode: API_STATUS_CODE.SUCCESS,
-    message: "Run Successfully",
+    message: "",
   },
   BAD_REQUEST: {
     statusCode: API_STATUS_CODE.BAD_REQUEST,
@@ -48,6 +48,14 @@ const API_RESPONSE = {
   DELETED: {
     statusCode: API_STATUS_CODE.SUCCESS,
     message: "Deleted successfully",
+  },
+  LOGGED_IN: {
+    statusCode: API_STATUS_CODE.SUCCESS,
+    message: "Login successfully",
+  },
+  LOGGED_OUT: {
+    statusCode: API_STATUS_CODE.SUCCESS,
+    message: "Logged-out successfully",
   },
 };
 

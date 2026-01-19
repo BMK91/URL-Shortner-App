@@ -19,7 +19,7 @@ const urlSchemas = z.object({
         return false;
       }
     },
-    { message: "Enter a valid URL" }
+    { message: "Enter a valid URL" },
   ),
 });
 
@@ -52,7 +52,7 @@ const createUrlRequest = async (req, res) => {
       base36Timestamp +
       customAlphabet(
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
-        config.urlLength
+        config.urlLength,
       )();
 
     const isExistUrlRequest = await UrlRequest.findOne({
@@ -92,6 +92,7 @@ const getOriginalUrl = async (req, res) => {
   // Implementation for getting a URL request
   try {
     const { shortenUrl } = req.body;
+    console.log({ user: req.user });
 
     const config = await UrlConfig.findOne({
       isActive: true,
@@ -99,23 +100,28 @@ const getOriginalUrl = async (req, res) => {
     });
 
     if (!config) {
-      return res.status(500).json({ message: "URL Config Not Found" });
+      return sendError(res, {
+        ...API_RESPONSE.NOT_FOUND,
+        message: "URL Config Not Found",
+      });
     }
 
     const urlCode = shortenUrl.replace(`${config.prefix}/`, "");
     const urlRequest = await UrlRequest.findOne(
       { urlCode },
-      { _id: 0, originalUrl: 1 }
+      { _id: 0, originalUrl: 1 },
     );
 
     if (!urlRequest) {
-      return res.status(404).json({ message: "URL Request Not Found" });
+      return sendError(res, {
+        ...API_RESPONSE.NOT_FOUND,
+        message: "URL Request Not Found",
+      });
     }
 
     // res.redirect(urlRequest.originalUrl);
-    return res.json({
-      status: "SUCCESS",
-      message: "",
+    return sendSuccess(res, {
+      ...API_RESPONSE.SUCCESS,
       data: urlRequest,
     });
   } catch (error) {
@@ -140,11 +146,7 @@ const getUrlHistory = async (req, res) => {
       },
     ]);
 
-    return res.status(200).json({
-      status: "SUCCESS",
-      message: "",
-      data: urlRequests,
-    });
+    return sendSuccess(res, { ...API_RESPONSE.SUCCESS, data: urlRequests });
   } catch (error) {
     return sendError(res);
   }

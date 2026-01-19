@@ -6,13 +6,20 @@ import {
   getOriginalUrl,
   getUrlHistory,
 } from "../controller/UrlRequest.js";
+import authRouter from "./Auth.js";
+import userRouter from "./User.js";
+import { verifyAuth } from "../middleware/Auth.js";
 
 const router = express.Router();
 
+router.use("/auth", authRouter);
+
 router
-  .post("/", createUrlRequest)
-  .post("/get-original-url", getOriginalUrl)
-  .post("/url-history", getUrlHistory)
-  .delete("/delete-history/:id", deleteUrlHistory);
+  .post("/", verifyAuth, createUrlRequest)
+  .post("/get-original-url", verifyAuth, getOriginalUrl)
+  .post("/url-history", verifyAuth, getUrlHistory)
+  .delete("/delete-history/:id", verifyAuth, deleteUrlHistory);
+
+router.use("/user", userRouter);
 
 export default router;
