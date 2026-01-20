@@ -20,6 +20,6 @@ router
   .post("/url-history", verifyAuth, getUrlHistory)
   .delete("/delete-history/:id", verifyAuth, deleteUrlHistory);
 
-router.use("/user", userRouter);
+router.use("/user", verifyAuth, userRouter);
 
 export default router;

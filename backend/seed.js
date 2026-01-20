@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 dotenv.config();
 
 import connectDB from "./config/db.js";
-import { ROLE } from "./constants/common.js";
+import { AUTH_ROLES } from "./constants/common.js";
 import { UrlConfig } from "./models/Config.js";
 import { User } from "./models/User.js";
 
@@ -36,7 +36,7 @@ const ADMIN_USERS = [
     name: "ADMIN",
     email: "admin@admin.com",
     password: "admin",
-    role: ROLE.ADMIN,
+    role: AUTH_ROLES.ADMIN,
   },
 ];
 

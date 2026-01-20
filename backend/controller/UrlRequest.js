@@ -30,10 +30,7 @@ const createUrlRequest = async (req, res) => {
     const ipAddress = req.ip || req.connection.remoteAddress;
 
     // Validate input data
-    const validation = urlSchemas.safeParse({ urlName, originalUrl });
-    if (!validation.success) {
-      return sendError(res, API_RESPONSE.BAD_REQUEST);
-    }
+    validateSchema(urlSchemas)(req, res, () => {});
 
     const config = await UrlConfig.findOne({
       isActive: true,
@@ -92,7 +89,6 @@ const getOriginalUrl = async (req, res) => {
   // Implementation for getting a URL request
   try {
     const { shortenUrl } = req.body;
-    console.log({ user: req.user });
 
     const config = await UrlConfig.findOne({
       isActive: true,
