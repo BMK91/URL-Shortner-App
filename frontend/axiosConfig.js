@@ -6,6 +6,7 @@ const api = axios.create({
     "Content-Type": "application/json",
     Accept: "application/json",
   },
+  withCredentials: true,
 });
 
 api.interceptors.request.use(
@@ -18,16 +19,20 @@ api.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 api.interceptors.response.use(
   (response) => {
     return response;
   },
-  (error) => {
+  async (error) => {
+    if (error.response?.status === 401) {
+      await api.post("/auth/refresh-token");
+      return api(error.config);
+    }
     return Promise.reject(error);
-  }
+  },
 );
 
 export default api;

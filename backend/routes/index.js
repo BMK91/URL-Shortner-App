@@ -5,6 +5,7 @@ import {
   deleteUrlHistory,
   getOriginalUrl,
   getUrlHistory,
+  redirectUrl,
 } from "../controller/UrlRequest.js";
 import authRouter from "./Auth.js";
 import userRouter from "./User.js";
@@ -18,7 +19,8 @@ router
   .post("/", verifyAuth, createUrlRequest)
   .post("/get-original-url", verifyAuth, getOriginalUrl)
   .post("/url-history", verifyAuth, getUrlHistory)
-  .delete("/delete-history/:id", verifyAuth, deleteUrlHistory);
+  .delete("/delete-history/:id", verifyAuth, deleteUrlHistory)
+  .get("/redirect-url/:shortCode", redirectUrl);
 
 router.use("/user", verifyAuth, userRouter);
 

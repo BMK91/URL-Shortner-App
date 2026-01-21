@@ -1,4 +1,5 @@
 import { Controller, useForm } from "react-hook-form";
+import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,6 +13,10 @@ import {
 } from "@mui/material";
 import { z } from "zod";
 
+import { useHandleMessage } from "@hooks/handleMessage";
+import { checkAuth } from "@store/reducers/AuthReducer";
+import { login } from "../AuthService";
+
 const loginFormSchema = z.object({
   email: z.email(),
   password: z.string().min(1, { message: "Password is required" }),
@@ -19,22 +24,36 @@ const loginFormSchema = z.object({
 
 const Login = () => {
   const navigate = useNavigate();
+  const handleMessage = useHandleMessage();
+  const dispatch = useDispatch();
 
   const { control, handleSubmit, reset } = useForm({
     resolver: zodResolver(loginFormSchema),
     defaultValues: {
-      email: "",
-      password: "",
+      email: "bhargav.test@test.com",
+      password: "test",
     },
     mode: "onBlur",
     reValidateMode: "onChange",
   });
 
   const onSubmit = async (data) => {
-    console.log("Login data submitted:", data);
-    localStorage.setItem("isLoggedIn", "true");
-    reset();
-    navigate("/dashboard");
+    try {
+      const payload = {
+        email: data.email,
+        password: data.password,
+      };
+
+      const response = await login(payload);
+      if (response.data?.status === "SUCCESS") {
+        reset();
+        await dispatch(checkAuth());
+        navigate("/dashboard");
+      }
+      handleMessage(response);
+    } catch (error) {
+      handleMessage(error);
+    }
   };
 
   return (

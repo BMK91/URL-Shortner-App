@@ -15,7 +15,8 @@ const JWT_COOKIE_CONFIG = {
     CONFIG: {
       httpOnly: true,
       maxAge: 1000 * 60 * 60, // 1 Hour
-      sameSite: "strict",
+      sameSite: "lax",
+      secure: true || process.env.NODE_ENV === "production",
     },
   },
   REFRESH_TOKEN: {
@@ -23,7 +24,8 @@ const JWT_COOKIE_CONFIG = {
     CONFIG: {
       httpOnly: true,
       maxAge: 1000 * 60 * 60 * 24, // 1 Day
-      sameSite: "strict",
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
     },
   },
 };
@@ -119,4 +121,21 @@ const logout = async (req, res) => {
   }
 };
 
-export { login, logout, refreshToken };
+const authUser = async (req, res) => {
+  try {
+    const payload = {
+      authenticated: true,
+      user: req.user,
+    };
+
+    return sendSuccess(res, {
+      ...API_RESPONSE.SUCCESS,
+      data: payload,
+    });
+  } catch (error) {
+    sendError(res);
+  }
+};
+
+export { authUser, login, logout, refreshToken };
+

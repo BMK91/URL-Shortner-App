@@ -1,11 +1,15 @@
-import { useAuth } from "@hooks/useAuth";
+import { useSelector } from "react-redux";
 import { Navigate } from "react-router-dom";
 
 const ProtectedRoute = ({ children }) => {
-  const isAuthenticated = useAuth();
-  // console.log("ProtectedRoute - isAuthenticated:", isAuthenticated);
+  const { auth, status } = useSelector((state) => state.auth);
+  // console.log("ProtectedRoute - isAuthenticated:", auth);
 
-  if (isAuthenticated) {
+  if (status === "idle" || status === "loading") {
+    return <div>Loading...</div>; // optional loading state
+  }
+
+  if (auth.authenticated) {
     return children;
   }
   return <Navigate to="/login" replace />;

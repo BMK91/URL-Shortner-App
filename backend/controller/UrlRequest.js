@@ -1,10 +1,12 @@
 import { customAlphabet } from "nanoid";
 import { z } from "zod";
 
-import API_RESPONSE from "../constants/api-responses.js";
 import { UrlConfig } from "../models/Config.js";
 import { UrlRequest } from "../models/UrlRequest.js";
+
+import API_RESPONSE from "../constants/api-responses.js";
 import { sendError, sendSuccess } from "../utils/responseHandler.js";
+import { validateSchema } from "../utils/validateSchema.js";
 
 const urlSchemas = z.object({
   urlName: z.string().min(3, {
@@ -173,4 +175,45 @@ const deleteUrlHistory = async (req, res) => {
   }
 };
 
-export { createUrlRequest, deleteUrlHistory, getOriginalUrl, getUrlHistory };
+const redirectUrl = async (req, res) => {
+  // Implementation for getting a URL request
+  try {
+    const { shortCode: urlCode } = req.params;
+
+    const config = await UrlConfig.findOne({
+      isActive: true,
+      isDeleted: false,
+    });
+
+    if (!config) {
+      return sendError(res, {
+        ...API_RESPONSE.NOT_FOUND,
+        message: "URL Config Not Found",
+      });
+    }
+
+    const urlRequest = await UrlRequest.findOne(
+      { urlCode },
+      { _id: 0, originalUrl: 1 },
+    );
+
+    if (!urlRequest) {
+      return sendError(res, {
+        ...API_RESPONSE.NOT_FOUND,
+        message: "URL Request Not Found",
+      });
+    }
+
+    res.redirect(urlRequest.originalUrl);
+  } catch (error) {
+    return sendError(res);
+  }
+};
+
+export {
+  createUrlRequest,
+  deleteUrlHistory,
+  getOriginalUrl,
+  getUrlHistory,
+  redirectUrl,
+};

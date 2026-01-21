@@ -1,22 +1,9 @@
-import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 
 export function useAuth() {
-  const [isLoggedIn, setIsLoggedIn] = useState(
-    () => localStorage.getItem("isLoggedIn") === "true",
-  );
+  const user = useSelector((state) => state.user);
 
-  useEffect(() => {
-    const handleStorageChange = () => {
-      setIsLoggedIn(localStorage.getItem("isLoggedIn") === "true");
-    };
-    window.addEventListener("storage", handleStorageChange);
-
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-    };
-  }, []);
-
-  // cons
-
-  return isLoggedIn;
+  return {
+    ...user,
+  };
 }
